@@ -169,8 +169,8 @@ pick_txt(){
   shopt -s nullglob
   if [[ "$fam" == "b2" ]]; then
     for cand in \
-      brcmfmac4364b2-pcie.apple,midway-HRPN-m.txt \
-      brcmfmac4364b2-pcie.apple,midway-HRPN-u.txt; do
+      brcmfmac4364b2-pcie.apple,midway-HRPN-u.txt \
+      brcmfmac4364b2-pcie.apple,midway-HRPN-m.txt; do
       if [[ -f "$src/$cand" ]]; then picked="$cand"; break; fi
     done
     if [[ -n "$picked" ]]; then
