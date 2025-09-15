@@ -253,7 +253,7 @@ uname -r
 > The installer’s **kernel checker** can prompt you for this automatically; the commands above are the manual way.
 
 ### Ubuntu 22.04 LTS — HWE kernel
-Install the **Hardware Enablement (HWE)** stack to get a newer kernel (tracking the current Ubuntu stack, i.e. ≥ **6.8** when 24.04 is current):
+Install the **Hardware Enablement (HWE)** stack to get a newer kernel (it **tracks kernels from newer Ubuntu releases**; for example, when **Ubuntu 24.04** is current, the HWE kernel for 22.04 provides **≥ 6.8**):
 
 ```bash
 # 1) Install HWE meta-package
