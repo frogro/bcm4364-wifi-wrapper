@@ -87,7 +87,7 @@ sudo apt update
 sudo apt install -y git curl tar zstd unzstd network-manager rfkill iw pciutils dmidecode
 ```
 
-> On **Ubuntu**, keep your kernel ≥ **6.8** (e.g. via the `linux-generic` meta‑package on current releases) and run the installer with `--no-kernel-check` if you don’t want Debian‑specific prompts. The Debian kernel upgrade service is not integrated on Ubuntu.
+> On **Ubuntu**, keep your kernel ≥ **6.8**. On **Ubuntu 22.04 LTS**, install the **HWE kernel** (`linux-generic-hwe-22.04`); on **Ubuntu 24.04+** the `linux-generic` meta‑package already provides ≥ 6.8. Run the installer with `--no-kernel-check` if you don’t want Debian‑specific prompts. (The Debian kernel upgrade service is not integrated on Ubuntu.)
 
 ---
 
@@ -114,7 +114,7 @@ If you still have macOS on the machine, you can confirm the **exact firmware fam
   ```bash
   ioreg -l | grep RequestedFiles
   ```
-  Example output may contain: `C-4364__s-B3/**bali**/...` or `C-4364__s-B2/**midway**/...` — the bold part is the **family**. Use that with `--family <name>` if you want to override auto‑detection.
+  Example output may contain: `C-4364__s-B3/bali/...` or `C-4364__s-B2/midway/...` — here `bali` or `midway` is the **family** name. Use that with `--family <name>` if you want to override auto‑detection.
 
 - **Also capture your model + board‑id (useful for debugging/mapping):**
   ```bash
@@ -206,7 +206,7 @@ sudo modprobe cfg80211 && sudo modprobe brcmutil && sudo modprobe brcmfmac
   - If macOS shows a different family (see **Determine your family on macOS**), re‑run with `--family <name>`.
 
 - **Ubuntu users**
-  - Keep a ≥6.8 kernel via the normal Ubuntu meta‑packages (e.g. `linux-generic` on 24.04/24.10+) and use `--no-kernel-check`.
+  - Ensure kernel **≥ 6.8**. On **22.04 LTS**, install **HWE** (`linux-generic-hwe-22.04`); on **24.04+** `linux-generic` already provides it. You may use `--no-kernel-check`.
 
 ---
 
