@@ -226,6 +226,51 @@ sudo modprobe cfg80211 && sudo modprobe brcmutil && sudo modprobe brcmfmac
 
 ---
 
+## Appendix: Kernel upgrade quick guides
+
+### Debian 12 (“bookworm”) — Backports kernel
+Use **Backports** to install a kernel ≥ **6.8**:
+
+```bash
+# 1) Enable bookworm-backports (once)
+echo 'deb http://deb.debian.org/debian bookworm-backports main contrib non-free-firmware' | sudo tee /etc/apt/sources.list.d/backports.list
+
+# 2) Update package lists
+sudo apt update
+
+# 3) (Optional) Check the candidate kernel source
+apt-cache policy linux-image-amd64 | sed -n '1,20p'
+
+# 4) Install Backports kernel + headers
+sudo apt -t bookworm-backports install -y linux-image-amd64 linux-headers-amd64
+
+# 5) Reboot and verify
+sudo reboot
+# after reboot:
+uname -r
+```
+
+> The installer’s **kernel checker** can prompt you for this automatically; the commands above are the manual way.
+
+### Ubuntu 22.04 LTS — HWE kernel
+Install the **Hardware Enablement (HWE)** stack to get a newer kernel (tracking the current Ubuntu stack, i.e. ≥ **6.8** when 24.04 is current):
+
+```bash
+# 1) Install HWE meta-package
+sudo apt update
+sudo apt install -y linux-generic-hwe-22.04
+
+# 2) Reboot and verify
+sudo reboot
+# after reboot:
+uname -r
+```
+
+> On **Ubuntu 24.04+**, you normally already have ≥ **6.8** with the standard `linux-generic` meta-package; no HWE step is needed.
+
+
+---
+
 ## License
 
 This wrapper is released under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
