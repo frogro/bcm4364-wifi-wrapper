@@ -8,6 +8,12 @@ This repository provides a **wrapper installer** for Macs (**iMac**, **MacBook**
 > **TL;DR**  
 > Run `sudo ./install.sh` on a BCM4364‑equipped Mac. The script detects your model/revision, picks the right **family** (e.g. `midway`, `nihau`, `bali`, `borneo`, `kure`, …), installs the matching `bin`, `clm_blob`, `txcap_blob` and `.txt`, creates the generic symlinks the kernel expects, and refreshes Wi‑Fi. You may override the family manually if you already know it from macOS (see **Determine your family on macOS**).
 
+> **Kernel requirement (Debian & Ubuntu)**
+> You must run a **Linux kernel ≥ 6.8** for reliable BCM4364 operation.
+> - **Debian 12 (bookworm):** this installer includes a **Debian-only kernel checker** that can upgrade you to the **latest Backports kernel** (`linux-image-amd64` + headers). You can accept the prompt or skip it with `--no-kernel-check`.
+> - **Ubuntu:** the kernel checker is **not integrated**. Keep your system on **≥ 6.8** (e.g. via the `linux-generic` meta-package on current releases) and run the installer with `--no-kernel-check` if you don’t want Debian-specific prompts.
+
+
 ---
 
 ## Supported hardware (examples)
@@ -29,9 +35,9 @@ Apple Intel Macs using **Broadcom BCM4364** (PCI ID `14e4:4464`), typically:
    - Verifies **root**.
    - Confirms **BCM4364** presence (`lspci` shows `14e4:4464`) — unless `--dry-run`.
 
-2. **Optional kernel pre‑check (Debian/Ubuntu)**
-   - Recommends a modern kernel (≥ **6.8**) for stable BCM4364.
-   - On Debian, may suggest installing `linux-image-amd64` + headers. Skip with `--no-kernel-check`.
+2. **Kernel requirement check (Debian‑only)**
+   - Requires kernel **≥ 6.8**. On **Debian 12**, the installer can offer to install/upgrade to the **latest Backports kernel** (`linux-image-amd64` + headers).
+   - On **Ubuntu**, no kernel service/check is integrated; keep `linux-generic` on a release that provides ≥ 6.8, or run with `--no-kernel-check` to suppress Debian prompts.
 
 3. **Variant (family) detection**
    - Reads **BCM4364 revision** (`/3 → B2`, `/2 → B3`) from `dmesg`.
@@ -71,6 +77,7 @@ Apple Intel Macs using **Broadcom BCM4364** (PCI ID `14e4:4464`), typically:
 
 ## Requirements
 
+- **Linux kernel ≥ 6.8** (see callout above)
 - **Debian 12/13** or **Ubuntu 22.04+**
 - Tools: `git`, `curl`, `tar` (with `--zstd` support or `unzstd`), `zstd`, `network-manager`, `rfkill`, `iw`, `pciutils` (`lspci`), `dmidecode`
 
@@ -80,7 +87,7 @@ sudo apt update
 sudo apt install -y git curl tar zstd unzstd network-manager rfkill iw pciutils dmidecode
 ```
 
-> On **Ubuntu**, keep your kernel ≥ **6.8** (e.g. `linux-generic` on current releases) and run the installer with `--no-kernel-check` if you don’t want Debian‑specific prompts.
+> On **Ubuntu**, keep your kernel ≥ **6.8** (e.g. via the `linux-generic` meta‑package on current releases) and run the installer with `--no-kernel-check` if you don’t want Debian‑specific prompts. The Debian kernel upgrade service is not integrated on Ubuntu.
 
 ---
 
@@ -94,6 +101,8 @@ sudo ./install.sh --country DE
 ```
 
 If Wi‑Fi networks do not appear afterwards, **reboot once**.
+
+> **Tip:** On **Debian 12**, the installer may prompt to upgrade to the latest **Backports** kernel (≥ 6.8). On **Ubuntu**, ensure `linux-generic` provides ≥ 6.8 and consider `--no-kernel-check`.
 
 ---
 
