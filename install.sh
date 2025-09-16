@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh
+# install-wifi-wrapper.sh
 # Downloads Apple Broadcom firmware from Noa’s package, detects platform variant,
 # and installs the proper family files (bin/clm_blob/txcap_blob/txt) into /lib/firmware/brcm.
 #
@@ -572,20 +572,31 @@ persist_regdom(){
   ok "Persisted regdom via /etc/modprobe.d/cfg80211.conf (reboot may be required)"
 }
 
-
 nm_rescan_and_show(){
+  # Skip if nmcli not available
   if ! have nmcli; then return 0; fi
+
+  # Disable nmcli pager and colors; treat output as non-interactive
+  local NMENV="NM_CLI_PAGER=cat NM_CLI_LESS= NM_CLI_COLOR=no"
+
+  # Optional restart of NetworkManager if the script is configured for it
   if (( RESTART_NM==1 )); then
     info "Restarting NetworkManager…"
     systemctl restart NetworkManager || warn "NM restart failed"
   fi
-  nmcli radio wifi on || true
+
+  # Ensure Wi‑Fi radio is on and trigger a rescan
+  eval "$NMENV nmcli radio wifi on" || true
   sleep 1
   info "Wi-Fi rescan…"
-  nmcli dev wifi rescan || true
+  eval "$NMENV nmcli dev wifi rescan" || true
   sleep 1
-  nmcli dev wifi list || true
+
+  # List a compact table of networks; cap to first 30 lines and enforce a timeout
+  # The env disables the pager; the timeout prevents rare hangs
+  eval "$NMENV timeout 8s nmcli -f SSID,CHAN,SIGNAL,SECURITY dev wifi list" | sed -n '1,30p' || true
 }
+
 
 iw_fallback_scan(){
   local ifn
