@@ -1,4 +1,4 @@
-# BCM4364 Wi‑Fi Firmware Wrapper (Debian/Ubuntu on Intel Macs)
+[![ShellCheck](https://github.com/frogro/bcm4364-wifi-wrapper/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/frogro/bcm4364-wifi-wrapper/actions/workflows/shellcheck.yml)# BCM4364 Wi‑Fi Firmware Wrapper (Debian/Ubuntu on Intel Macs)
 
 This repository provides a **wrapper installer** for Macs (**iMac**, **MacBook**, **Mac mini**, **iMac Pro**, **Mac Pro**) that ship with **Apple’s Broadcom BCM4364** Wi‑Fi chipset **and run Linux (Debian/Ubuntu)**. On these T2‑era Intel Macs, **Wi‑Fi does not work out of the box** because the Linux `brcmfmac` driver **requires device‑specific Apple firmware blobs** — and the correct *family/variant* for hardware revisions **B2/B3** — which Linux distributions do **not** include for licensing reasons. This wrapper **does not ship any firmware**; it downloads the upstream package, picks the right set, and installs the correct **family** variant for your machine.
 
