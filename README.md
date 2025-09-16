@@ -186,7 +186,7 @@ cd /lib/firmware/brcm
 sudo rm -f brcmfmac4364-pcie.bin brcmfmac4364-pcie.clm_blob brcmfmac4364-pcie.txcap_blob brcmfmac4364-pcie.txt
 
 # Remove family‑specific files you installed (adjust the <family> you used)
-sudo rm -f brcmfmac4364b2-pcie.apple,<family>.bin            brcmfmac4364b2-pcie.apple,<family>.clm_blob            brcmfmac4364b2-pcie.apple,<family>.txcap_blob            brcmfmac4364b2-pcie.apple,<family>.txt            brcmfmac4364b3-pcie.apple,<family>.bin            brcmfmac4364b3-pcie.apple,<family>.clm_blob            brcmfmac4364b3-pcie.apple,<family>.txcap_blob            brcmfmac4364b3-pcie.apple,<family>.txt
+sudo rm -f brcmfmac4364b2-pcie.apple,<family>.bin brcmfmac4364b2-pcie.apple,<family>.clm_blob brcmfmac4364b2-pcie.apple,<family>.txcap_blob brcmfmac4364b2-pcie.apple,<family>.txt brcmfmac4364b3-pcie.apple,<family>.bin brcmfmac4364b3-pcie.apple,<family>.clm_blob brcmfmac4364b3-pcie.apple,<family>.txcap_blob brcmfmac4364b3-pcie.apple,<family>.txt
 
 # Then reload driver (or just reboot)
 sudo modprobe -r brcmfmac brcmutil cfg80211 || true
