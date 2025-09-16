@@ -571,44 +571,74 @@ persist_regdom(){
   fi
   ok "Persisted regdom via /etc/modprobe.d/cfg80211.conf (reboot may be required)"
 }
+iw_fallback_scan(){
+  # Use 'iw' to trigger a passive scan without blocking the script.
+  if ! have iw; then return 0; fi
+  local iface
+  iface="$(iw dev | awk '/Interface/{print $2; exit}')"
+  [ -n "$iface" ] || return 0
+  timeout 8s iw dev "$iface" scan >/dev/null 2>&1 || true
+}
+
 
 nm_rescan_and_show(){
-  # Skip if nmcli not available
+  # nmcli vorhanden?
   if ! have nmcli; then return 0; fi
 
-  # Disable nmcli pager and colors; treat output as non-interactive
+  # Pager/LESS/Color aus -> niemals blockieren
   local NMENV="NM_CLI_PAGER=cat NM_CLI_LESS= NM_CLI_COLOR=no"
 
-  # Optional restart of NetworkManager if the script is configured for it
+  # optional: NM neu starten, danach kurz warten
   if (( RESTART_NM==1 )); then
     info "Restarting NetworkManager…"
     systemctl restart NetworkManager || warn "NM restart failed"
+    sleep 2
   fi
 
-  # Ensure Wi‑Fi radio is on and trigger a rescan
+  # WLAN aktivieren, rfkill entsperren
   eval "$NMENV nmcli radio wifi on" || true
-  sleep 1
+  command -v rfkill >/dev/null && rfkill unblock all || true
+
+  # erstes Wi-Fi-Device ermitteln
+  local iface
+  iface="$(nmcli -t -f DEVICE,TYPE dev | awk -F: '$2=="wifi"{print $1; exit}')"
+
+  # warten bis Interface scanbar (max ~10s)
+  local t=0 state=""
+  while (( t < 10 )); do
+    state="$(nmcli -t -f DEVICE,STATE dev | awk -F: -v IF="$iface" '$1==IF{print $2}')"
+    case "$state" in
+      connected|disconnected|connecting|limbo) break ;;
+      unmanaged|unavailable|"") sleep 1; t=$((t+1)); continue ;;
+    esac
+    sleep 1; t=$((t+1))
+  done
+
   info "Wi-Fi rescan…"
-  eval "$NMENV nmcli dev wifi rescan" || true
-  sleep 1
+  local i out lines
+  for i in 1 2 3; do
+    eval "$NMENV nmcli dev wifi rescan" || true
+    sleep 2
+    # hübsche Tabelle, bekannte Spalten; timeout verhindert Blockade
+    out="$(NM_CLI_PAGER=cat NM_CLI_LESS= NM_CLI_COLOR=no timeout 10s \
+          nmcli -p -f IN-USE,BSSID,SSID,MODE,CHAN,RATE,SIGNAL,BARS,SECURITY \
+          dev wifi list 2>/dev/null || true)"
+    # mindestens eine Netzzeile? (Header zählt mit)
+    lines="$(printf '%s
+' "$out" | wc -l | tr -d ' ')"
+    if [ "$lines" -gt 1 ]; then
+      printf '%s
+' "$out" | sed -n '1,40p'
+      return 0
+    fi
+    sleep 2
+  done
 
-  # List a compact table of networks; cap to first 30 lines and enforce a timeout
-  # The env disables the pager; the timeout prevents rare hangs
-  eval "$NMENV timeout 8s nmcli -f SSID,CHAN,SIGNAL,SECURITY dev wifi list" | sed -n '1,30p' || true
+  warn "No networks listed yet (device state: ${state}). Continuing…"
+  return 0
 }
 
 
-iw_fallback_scan(){
-  local ifn
-  ifn="$(wifi_ifname)"
-  if [[ -z "$ifn" ]]; then return 0; fi
-  if have iw; then
-    info "iw dev $ifn scan (fallback)…"
-    iw dev "$ifn" scan | egrep -i 'SSID:|signal:|primary channel:' -n || true
-  elif have iwlist; then
-    iwlist "$ifn" scan 2>/dev/null | egrep 'Cell|ESSID|Signal|Channel' -n || true
-  fi
-}
 
 rfkill_unblock(){
   if have rfkill; then rfkill unblock all || true; fi
