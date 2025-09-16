@@ -79,7 +79,7 @@ Apple Intel Macs using **Broadcom BCM4364** (PCI ID `14e4:4464`), typically:
 ## Requirements
 
 - **Debian 12/13** or **Ubuntu 22.04+**
-- Tools: `git`, `curl`, `tar` (with `--zstd` support or `unzstd`), `zstd`, `network-manager`, `rfkill`, `iw`, `pciutils` (`lspci`), `dmidecode`
+- Tools: `git`, `curl`, `tar` (with `--zstd` support or `unzstd`), `zstd`, `network-manager` (or `iwd`), `rfkill`, `iw`, `pciutils` (`lspci`), `dmidecode`, `wireless-regdb`
 
 Install helpers (Debian/Ubuntu):
 ```bash
