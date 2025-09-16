@@ -84,8 +84,10 @@ Apple Intel Macs using **Broadcom BCM4364** (PCI ID `14e4:4464`), typically:
 Install helpers (Debian/Ubuntu):
 ```bash
 sudo apt update
-sudo apt install -y git curl tar zstd unzstd network-manager rfkill iw pciutils dmidecode
+sudo apt install -y git curl tar zstd unzstd network-manager rfkill iw pciutils dmidecode wireless-regdb
 ```
+**Notes:** The installer auto-installs iw and wireless-regdb if missing.
+Using --country XX sets the regulatory domain immediately and persists it (via wpa_supplicant or iwd; fallback to cfg80211).
 
 > **Linux kernel ≥ 6.8** required. On **Ubuntu 22.04 LTS**, install the HWE kernel (linux-generic-hwe-22.04); on **Ubuntu 24.04+**, the linux-generic meta-package already provides ≥ 6.8. If you don’t want Debian-specific prompts, run the installer with --no-kernel-check (the Debian kernel upgrade helper isn’t integrated on Ubuntu).
 
