@@ -78,7 +78,6 @@ Apple Intel Macs using **Broadcom BCM4364** (PCI ID `14e4:4464`), typically:
 
 ## Requirements
 
-- **Linux kernel ≥ 6.8** (see callout above)
 - **Debian 12/13** or **Ubuntu 22.04+**
 - Tools: `git`, `curl`, `tar` (with `--zstd` support or `unzstd`), `zstd`, `network-manager`, `rfkill`, `iw`, `pciutils` (`lspci`), `dmidecode`
 
@@ -88,7 +87,7 @@ sudo apt update
 sudo apt install -y git curl tar zstd unzstd network-manager rfkill iw pciutils dmidecode
 ```
 
-> On **Ubuntu**, keep your kernel ≥ **6.8**. On **Ubuntu 22.04 LTS**, install the **HWE kernel** (`linux-generic-hwe-22.04`); on **Ubuntu 24.04+** the `linux-generic` meta‑package already provides ≥ 6.8. Run the installer with `--no-kernel-check` if you don’t want Debian‑specific prompts. (The Debian kernel upgrade service is not integrated on Ubuntu.)
+> **Linux kernel ≥ 6.8** required. On **Ubuntu 22.04 LTS**, install the HWE kernel (linux-generic-hwe-22.04); on **Ubuntu 24.04+**, the linux-generic meta-package already provides ≥ 6.8. If you don’t want Debian-specific prompts, run the installer with --no-kernel-check (the Debian kernel upgrade helper isn’t integrated on Ubuntu).
 
 ---
 
