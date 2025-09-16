@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install-wifi-wrapper.sh
+# install.sh
 # Downloads Apple Broadcom firmware from Noa’s package, detects platform variant,
 # and installs the proper family files (bin/clm_blob/txcap_blob/txt) into /lib/firmware/brcm.
 #
@@ -26,7 +26,7 @@ KEEP_TEMP=0
 AUTO_YES=0          # --yes
 SKIP_KERNEL_CHECK=0 # --no-kernel-check
 P2P_OFF=0           # --p2p-off (default: keep P2P)
-COUNTRY=""          # --country DE
+COUNTRY=""          # --country XX      : Set & persist regdom (e.g., DE, US)
 DO_RESCAN=1         # --no-rescan disables it
 RESTART_NM=1        # --no-restart-nm disables it
 FORCE_FAM=""        # --family <midway|nihau|kauai|maui|lanai|ekans|borneo|bali|trinidad|kahana|hanauma|kure>
@@ -42,6 +42,30 @@ ok(){ printf "✅ %s\n" "$*"; }
 warn(){ printf "⚠️  %s\n" "$*"; }
 die(){ printf "❌ %s\n" "$*" >&2; exit 1; }
 have(){ command -v "$1" >/dev/null 2>&1; }
+export PATH="$PATH:/usr/sbin:/sbin"
+
+ensure_deps(){
+  # Ensure iw and regulatory DB are present
+  local need=()
+  if ! have iw; then need+=("iw"); fi
+  if [[ ! -e /lib/firmware/regulatory.db ]]; then need+=("wireless-regdb"); fi
+  if (( ${#need[@]} == 0 )); then return 0; fi
+
+  info "Installing prerequisites: ${need[*]}"
+  if have apt-get; then
+    DEBIAN_FRONTEND=noninteractive apt-get update -y || true
+    DEBIAN_FRONTEND=noninteractive apt-get install -y "${need[@]}" || warn "Some packages failed: ${need[*]}"
+  elif have dnf; then
+    dnf -y install "${need[@]}" || warn "dnf install failed"
+  elif have pacman; then
+    pacman -S --needed --noconfirm "${need[@]}" || warn "pacman install failed"
+  elif have zypper; then
+    zypper --non-interactive install -y "${need[@]}" || warn "zypper install failed"
+  else
+    warn "Unknown package manager; please install manually: ${need[*]}"
+  fi
+}
+
 ask_yes_no(){
   local p="${1:-Continue?}" d=${2:-1} a
   if (( AUTO_YES==1 )); then return 0; fi
@@ -510,6 +534,45 @@ set_regdom(){
   fi
 }
 
+persist_regdom(){
+  if [[ -z "$COUNTRY" ]]; then return 0; fi
+
+  # Prefer wpa_supplicant (NetworkManager setups)
+  if have wpa_cli || [[ -e /etc/wpa_supplicant/wpa_supplicant.conf ]]; then
+    install -D -m 644 /dev/null /etc/wpa_supplicant/wpa_supplicant.conf
+    if grep -q '^\s*country=' /etc/wpa_supplicant/wpa_supplicant.conf; then
+      sed -i 's/^\s*country=.*/country='"$COUNTRY"'/' /etc/wpa_supplicant/wpa_supplicant.conf
+    else
+      sed -i '1icountry='"$COUNTRY" /etc/wpa_supplicant/wpa_supplicant.conf
+    fi
+    if (( RESTART_NM==1 )); then
+      systemctl try-restart NetworkManager.service 2>/dev/null || \
+      systemctl try-restart wpa_supplicant.service 2>/dev/null || true
+    fi
+    ok "Persisted regdom in /etc/wpa_supplicant/wpa_supplicant.conf"
+    return 0
+  fi
+
+  # iwd alternative
+  if have iwd || [[ -d /etc/iwd ]]; then
+    install -d -m 755 /etc/iwd
+    printf '[General]\nRegulatoryDomain=%s\n' "$COUNTRY" > /etc/iwd/main.conf
+    if (( RESTART_NM==1 )); then
+      systemctl try-restart iwd.service 2>/dev/null || true
+    fi
+    ok "Persisted regdom in /etc/iwd/main.conf"
+    return 0
+  fi
+
+  # Fallback: cfg80211 module option (effective after reboot)
+  echo "options cfg80211 ieee80211_regdom=$COUNTRY" > /etc/modprobe.d/cfg80211.conf
+  if command -v update-initramfs >/dev/null 2>&1; then
+    update-initramfs -u || true
+  fi
+  ok "Persisted regdom via /etc/modprobe.d/cfg80211.conf (reboot may be required)"
+}
+
+
 nm_rescan_and_show(){
   if ! have nmcli; then return 0; fi
   if (( RESTART_NM==1 )); then
@@ -558,6 +621,9 @@ chip_present
 
 # 0) Kernel check / maybe upgrade (Stable preferred; in dry-run: report only)
 maybe_upgrade_kernel
+
+# Ensure tools present
+ensure_deps
 
 # 1) Detect family (or override)
 if [[ -n "$FORCE_FAM" ]]; then
@@ -622,6 +688,7 @@ install_family "$FAM" "$SRC"
 if (( DRY_RUN==0 )); then
   reload_driver
   set_regdom
+  persist_regdom
   rfkill_unblock
 
   IFN="$(wait_for_wifi_if || true)"
